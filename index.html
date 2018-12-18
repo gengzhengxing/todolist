@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>todolist</title>
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="normalize.css">
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<link rel="stylesheet" href="animate.css">
+	<script src="vue.js"></script>
+	<style>
+		body{
+			background-color: #ccc;
+			overflow-x: hidden;
+		}
+		#wrap{
+			width: 100%;
+			margin: 0 auto;
+		}
+		#wrap .head{
+			height: 60px;
+			background-color: #333;
+			width: 100%;
+			line-height: 60px;
+		}
+		#wrap .head label{
+			width: 100%;
+			padding: 0 15px;
+			font-size: 24px;
+			color: #fff;
+		}
+		#wrap .head button{
+			float: right;
+			margin-top: 15px;
+		}
+		#wrap .head input{
+			float: right;
+			margin-top: 15px;
+			margin-right: 15px;
+			width: 50%;
+		}
+		#wrap h3{
+			padding: 0 15px;
+		}
+		#wrap h3 span{
+			width: 20px;
+			line-height: 20px;
+			border-radius: 4px;
+			background-color: #fff;
+			font-size: 14px;
+			font-weight: 400;
+			text-align: center;
+		}
+		#wrap ul{
+			padding-left: 0;
+		}
+		#wrap li{
+			list-style: none;
+			width: 100%;
+			box-sizing: border-box;
+			padding: 3px 15px;
+			margin-bottom: 6px;
+			background-color: #fff;
+			box-shadow: -4px 0 0 0 skyblue;
+		}
+		#wrap span{
+			float: right;
+		}
+		#wrap li span,#wrap li input{
+			cursor: pointer;
+		}
+		.w{
+			width: 600px;
+			margin: 0 auto;
+		}
+		#wrap .finish li{
+			opacity: .5;
+		}
+		p{
+			padding-left: 15px;
+		}
+	</style>
+</head>
+<body>
+	<div id="wrap">
+		<div class="head">
+			<div class="w">
+				<label for="">
+					ToDoList <button class="btn btn-primary" @click="add1">添加</button><input type="text" class="form-control" @keyup.13="add1" v-model="init" placeholder="To Do">
+				</label>
+			</div>
+		</div>
+		<div class="w">
+			<mydoing :items="listItem" @cancel1="delete1" @change1="change"></mydoing>
+			<mycomplete :items="listcomplete" @cancel1="delete2" @change3="change2"></mycomplete>
+		</div>
+		
+	</div>
+	<script>
+		Vue.component("mydoing",{
+			template:
+			`
+				<div class="doing">
+					<h3>
+						正在进行
+						<span>
+							{{items.length}}
+						</span>
+					</h3>
+					<transition-group tag="ul" enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+						<li v-for="(item,index) of items" :key="item">
+							<label class="checkbox-inline">
+						  		<input type="checkbox" id="inlineCheckbox1" @click="change1(index)"> {{item}}
+							</label>
+							<span class="cancel" @click="cancel1(index)">✖</span>
+						</li>
+					</transition-group>
+					<transition v-if="!items.length" enter-active-class="animated fadeIn">
+						<p>暂无数据</p>
+					</transition>
+				</div>
+			`,
+			props:["items"],
+			methods:{
+				cancel1(n){
+					this.$emit("cancel1",n)
+				},
+				change1(n){
+					this.$emit("change1",n)
+				}
+			}
+		});
+		Vue.component("mycomplete",{
+			template:
+			`
+				<div class="doing finish">
+					<h3>
+						已经完成
+						<span>
+							{{items.length}}
+						</span>
+					</h3>
+					<transition-group tag="ul" enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+						<li v-for="(item,index) of items" :key="item">
+							<label class="checkbox-inline">
+						  		<input type="checkbox" id="inlineCheckbox1" @click="change3(index)" checked> {{item}}
+							</label>
+							<span class="cancel" @click="cancel1(index)">✖</span>
+						</li>
+					</transition-group>
+					<transition v-if="!items.length" enter-active-class="animated fadeIn">
+						<p>暂无数据</p>
+					</transition>
+				</div>
+			`,
+			props:["items"],
+			methods:{
+				cancel1(n){
+					this.$emit("cancel1",n)
+				},
+				change3(n){
+					this.$emit("change3",n)
+				}
+			}
+		});
+
+		window.onunload = function(){
+			if(example.listItem.length){
+				localStorage.setItem("his",example.listItem.toString());
+			}
+			if(example.listcomplete.length){
+				localStorage.setItem("his1",example.listcomplete.toString());
+			}
+		}
+
+		var example = new Vue({
+			el:"#wrap",
+			data(){
+				return {
+					init:null,
+					listItem:[],
+					listcomplete:[],
+					checked:false
+				}
+			},
+			methods:{
+				delete1(index){
+					this.listItem.splice(index,1);
+				},
+				delete2(index){
+					this.listcomplete.splice(index,1);
+				},
+				add1(){
+					if(this.init&&this.listItem.indexOf(this.init) == -1&&this.listcomplete.indexOf(this.init) == -1){
+						this.listItem.push(this.init);
+						this.init = null;
+					}
+				},
+				change2(index){
+					if(this.listItem.indexOf(this.listcomplete[index]) == -1&&this.listcomplete.indexOf(this.listItem[index]) == -1){
+						this.listItem.push(this.listcomplete[index])
+						this.listcomplete.splice(index,1);
+					}
+				},
+				change(index){
+					if(this.listcomplete.indexOf(this.listItem[index]) == -1&&this.listItem.indexOf(this.listcomplete[index]) == -1){
+						this.listcomplete.push(this.listItem[index])
+						this.listItem.splice(index,1);
+					}
+				}
+			},
+			mounted(){
+				var str = localStorage.getItem("his");
+				var str1 = localStorage.getItem("his1");
+				if(str){
+					this.listItem = str.split(",");
+				}
+				if(str1){
+					this.listcomplete = str1.split(",");
+				}
+			}
+		})
+	</script>
+</body>
+</html>
